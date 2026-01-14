@@ -140,6 +140,4 @@ vite.config.ts.timestamp-*
 .referenceCode/
 docker/.env
 
-
-
-
+data/

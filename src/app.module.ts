@@ -1,12 +1,16 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { HttpModule } from '@nestjs/axios';
-import { FreelancerService } from './freelancer/freelancer.service';
+import { AppService } from './services/app.service';
+import { CommandsModule } from './commands/commands.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { AppDataSource } from './database/data-source';
 
 @Module({
-  imports: [HttpModule],
+  imports: [
+    TypeOrmModule.forRoot(AppDataSource.options),
+    CommandsModule
+  ],
   controllers: [AppController],
-  providers: [AppService, FreelancerService],
+  providers: [AppService],
 })
 export class AppModule {}
