@@ -9,7 +9,7 @@ export class FreelancerService {
   constructor(private httpService: HttpService) {}
 
   async getSkills(): Promise<any> {
-    const url = 'https://www.freelancer.com/api/projects/0.1/jobs/';
+    const url = process.env.FREELANCER_API_URL + '/api/projects/0.1/jobs/';
     const headers = { 'Freelancer-OAuth-V1': process.env.FREELANCER_API_KEY };
 
     try {
@@ -22,9 +22,9 @@ export class FreelancerService {
   }
 
   async searchActiveProjects(skillIds: number[]): Promise<any> {
-    const url = 'https://www.freelancer.com/api/projects/0.1/projects/active';
+    const url = process.env.FREELANCER_API_URL + '/api/projects/0.1/projects/active';
     const headers = { 'Freelancer-OAuth-V1': process.env.FREELANCER_API_KEY };
-    const fortyEightHoursAgo = Math.floor((Date.now() - 1 * 60 * 60 * 1000) / 1000);
+    const fortyEightHoursAgo = Math.floor((Date.now() - 192 * 60 * 60 * 1000) / 1000);
 
     const allProjects = [];
     let offset = 0;

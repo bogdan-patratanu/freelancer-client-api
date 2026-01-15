@@ -2,7 +2,7 @@ import { Command, CommandRunner } from 'nest-commander';
 import { FreelancerService } from '../services/freelancer.service';
 import { EntityManager } from 'typeorm';
 import { InjectEntityManager } from '@nestjs/typeorm';
-import { Skill } from '../database/entities/index';
+import { Skill, Project } from '../database/entities/index';
 import { AppService } from '../services/app.service';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -57,7 +57,44 @@ export class GetProjectsCommand extends CommandRunner {
     console.log(`Start fetching projects`);
     let skills = await this.appService.skillsForQuery();
     const projectsResponse = await this.freelancerService.searchActiveProjects(skills);
-    console.log(projectsResponse);
+    for (const row of projectsResponse) {
+      let isValid = false;
+      for (const line of row['jobs']) {
+        if (skills.includes(parseInt(line['id']))) {
+          isValid = true;
+        }
+      }
+      if (isValid) {
+        let project = await this.entityManager.getRepository('Project').findOneBy({
+          remoteId: parseInt(row['id']),
+        });
+        if (!project) {
+          project = new Project();
+          project.remoteId = row['id'];
+          project.title = row['title'];
+          project.description = row['description'];
+          project.status = row['status'];
+          project.seoUrl = row['seo_url'];
+          project.currency = row['currency']['code'];          
+          project.jobs = row['jobs'];
+          project.submitDate = new Date(row['submitdate']);
+          project.type = row['type'];
+          project.bidPeriod = row['bidperiod'];
+          project.budget = row['budget'];
+          project.hourlyProjectInfo = row['hourly_project_info'];
+          project.bidStats = row['bid_stats'];
+          project.timeSubmited = new Date(row['time_submitted']);
+          project.timeUpdated = new Date(row['time_updated']);
+          project.language = row['language'];
+          project.location = row['location'];
+          project.trueLocation = row['true_location'];
+          project.ownerInfo = row['owner_info'];
+
+
+          await this.entityManager.getRepository('Project').save(project);
+        }
+      }
+    }
 
     // Write to JSON file
     const outputDir = path.join(process.cwd(), 'data', 'projects');
