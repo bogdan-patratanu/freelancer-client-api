@@ -2,7 +2,7 @@ import {
     Column, CreateDateColumn,
     Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Unique, UpdateDateColumn,
 } from 'typeorm';
-import {StarterEntity} from './index';
+import {StarterEntity} from './starter.entity';
 
 @Entity('miscellaneous')
 @Unique(['area', 'code', 'name'])

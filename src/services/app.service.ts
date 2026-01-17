@@ -1,8 +1,22 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { InjectEntityManager } from '@nestjs/typeorm';
+import { EntityManager } from 'typeorm';
 
 @Injectable()
 export class AppService {
-  getHello(): string {
+  private readonly logger = new Logger('Application');
+
+  constructor(
+    @InjectEntityManager()
+    private readonly entityManager: EntityManager,
+  ) {}
+
+  getAppLogger(): Logger {
+    return this.logger;
+  }
+
+  async getHello(): Promise<any> {
+    // const migrations = await this.entityManager.query('SELECT * FROM migrations');
     return 'Hello World!';
   }
 
@@ -298,4 +312,5 @@ export class AppService {
 
     return skills;
   }
+
 }

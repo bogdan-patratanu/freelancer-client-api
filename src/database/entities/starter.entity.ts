@@ -1,5 +1,4 @@
 import {CreateDateColumn, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn} from "typeorm";
-import {User} from "./index";
 
 export abstract class StarterEntity {
     @PrimaryGeneratedColumn()
@@ -9,15 +8,15 @@ export abstract class StarterEntity {
     createdOn: Date;
 
     @Index()
-    @ManyToOne(type => User, {nullable: true})
+    @ManyToOne(() => require("./user.entity").User, {nullable: true})
     @JoinColumn({name: 'created_by'})
-    createdBy: User;
+    createdBy: any;
 
     @UpdateDateColumn({name: 'updated_on', nullable: true})
     updatedOn: Date;
 
     @Index()
-    @ManyToOne(type => User, {nullable: true})
+    @ManyToOne(() => require("./user.entity").User, {nullable: true})
     @JoinColumn({name: 'updated_by'})
-    updatedBy: User;
+    updatedBy: any;
 }

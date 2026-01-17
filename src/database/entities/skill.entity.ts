@@ -1,5 +1,5 @@
 import { Entity, Column, Index } from 'typeorm';
-import { StarterEntity } from './index';
+import { StarterEntity } from './starter.entity';
 
 @Entity('skills')
 export class Skill extends StarterEntity {

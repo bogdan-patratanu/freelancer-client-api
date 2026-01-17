@@ -1,12 +1,14 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
+import { AppService } from './app.service';
 
 @Injectable()
 export class FreelancerService {
-  private readonly logger = new Logger(FreelancerService.name);
-
-  constructor(private httpService: HttpService) {}
+  constructor(
+    private httpService: HttpService,
+    private appService: AppService
+  ) {}
 
   async getSkills(): Promise<any> {
     const url = process.env.FREELANCER_API_URL + '/api/projects/0.1/jobs/';
@@ -16,7 +18,7 @@ export class FreelancerService {
       const response = await firstValueFrom(this.httpService.get(url, { headers }));
       return response.data;
     } catch (error) {
-      this.logger.error('Error fetching skills', error.stack);
+      this.appService.getAppLogger().error('Error fetching skills', error.stack);
       throw error;
     }
   }
@@ -32,7 +34,7 @@ export class FreelancerService {
     let hasMore = true;
     skillIds = [];
     try {
-      this.logger.log(
+      this.appService.getAppLogger().log(
         `Searching projects with skills: [${skillIds.join(', ')}] from last 48 hours`,
       );
 
@@ -50,7 +52,7 @@ export class FreelancerService {
           offset,
         };
 
-        this.logger.log(`Fetching batch at offset ${offset}...`);
+        this.appService.getAppLogger().log(`Fetching batch at offset ${offset}...`);
 
         try {
           const response = await firstValueFrom(
@@ -61,27 +63,49 @@ export class FreelancerService {
 
           if (projects.length === 0) {
             hasMore = false;
-            this.logger.log('No more projects found, stopping pagination');
+            this.appService.getAppLogger().log('No more projects found, stopping pagination');
           } else {
             allProjects.push(...projects);
-            this.logger.log(`Fetched ${projects.length} projects (total: ${allProjects.length})`);
+            this.appService.getAppLogger().log(`Fetched ${projects.length} projects (total: ${allProjects.length})`);
             offset += limit;
 
             await new Promise((resolve) => setTimeout(resolve, 2000));
           }
         } catch (error) {
-          this.logger.error(`Error fetching batch at offset ${offset}: ${error.message}`);
+          this.appService.getAppLogger().error(`Error fetching batch at offset ${offset}: ${error.message}`);
           hasMore = false; // Break loop on error
           throw error; // Rethrow to be caught by outer catch
         }
       }
 
-      this.logger.log(`Completed: Found ${allProjects.length} total projects`);
+      this.appService.getAppLogger().log(`Completed: Found ${allProjects.length} total projects`);
 
       return allProjects;
     } catch (error) {
-      this.logger.error('Error searching active projects', error.stack);
+      this.appService.getAppLogger().error('Error searching active projects', error.stack);
       throw error;
     }
   }
+
+  async activeProjectsCall(params: any): Promise<any> {
+    const url = process.env.FREELANCER_API_URL + '/api/projects/0.1/projects/active';
+    const headers = { 'Freelancer-OAuth-V1': process.env.FREELANCER_API_KEY };
+
+    try {
+      this.appService.getAppLogger().log(`Fetching active projects with params: ${JSON.stringify(params)}`);
+
+      const response = await firstValueFrom(
+        this.httpService.get(url, { headers, params, timeout: 10000 }),
+      );
+
+      const projects = response.data?.result?.projects || [];
+
+      return projects;
+    } catch (error) {
+      this.appService.getAppLogger().error('Error searching active projects', error);
+      return [];
+    }
+  }
+
+
 }
