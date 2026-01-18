@@ -58,7 +58,7 @@ ifeq ($(OS_NAME),OSX)
 endif
 
 DOCKER_COMPOSE:=docker-compose $(DOCKER_COMPOSE_PROFILES) $(DOCKER_COMPOSE_FILE) --project-directory $(DOCKER_COMPOSE_DIR)
-DOCKER_COMPOSE_2:=docker-compose
+DOCKER_COMPOSE_2:=docker compose
 
 DEFAULT_GOAL := help
 help:
