@@ -1,0 +1,55 @@
+networks:
+  backend:
+    driver: bridge
+    external: true
+
+services:
+  database:
+    image: mysql:8.0
+    container_name: ${COMPOSE_PROJECT_NAME}_db
+    ports:
+      - "3306:3306"
+    networks:
+      - backend
+    user: ${MYSQL_USER_ID}:${MYSQL_GROUP_ID}
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${COMPOSE_PROJECT_NAME}
+      TZ: UTC
+    volumes:
+      - mysql-data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password --secure-file-priv=/tmp
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: ${COMPOSE_PROJECT_NAME}_admin
+    environment:
+      PMA_HOST: database
+      PMA_PORT: 3306
+      PMA_ARBITRARY: 1
+    ports:
+      - "8080:80"
+    networks:
+      - backend
+
+  app:
+    image: node:latest
+    container_name: ${COMPOSE_PROJECT_NAME}_app
+    working_dir: ${COMPOSE_WORKING_DIR}
+    command: sleep infinity
+    ports:
+      - "3000:3000"
+    environment:
+      TZ: UTC
+      WORKING_DIR: ${COMPOSE_WORKING_DIR}
+      USER_ID: ${USER_ID}
+      WATCHPACK_POLLING: "true"
+    volumes:
+      - ./../:${COMPOSE_WORKING_DIR}:rw,delegated
+    networks:
+      - backend
+
+volumes:
+  mysql-data:
