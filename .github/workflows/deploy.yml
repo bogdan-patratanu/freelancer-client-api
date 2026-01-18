@@ -35,7 +35,7 @@ jobs:
 
         touch docker/.env
         echo "COMPOSE_PROJECT_NAME=freelancer_client_api" >> docker/.env
-        echo "COMPOSE_WORKING_DIR=/app" > docker/.env
+        echo "COMPOSE_WORKING_DIR=/app" >> docker/.env
         
         echo "Uploading files to the server..."
         apt update && apt install -y openssh-client
