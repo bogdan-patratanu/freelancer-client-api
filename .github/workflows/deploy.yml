@@ -38,7 +38,7 @@ jobs:
         echo "COMPOSE_WORKING_DIR=/app" > docker/.env
         
         echo "Uploading files to the server..."
-        apt update && apt install -y scp
+        apt update && apt install -y openssh-client
         scp -r * ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:${{ secrets.SERVER_PROJECT_PATH }}
 
         echo "Running remote commands..."
