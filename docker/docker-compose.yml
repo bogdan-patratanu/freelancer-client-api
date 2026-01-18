@@ -45,7 +45,6 @@ services:
       TZ: UTC
       WORKING_DIR: ${COMPOSE_WORKING_DIR}
       USER_ID: ${USER_ID}
-      SERVER_NAME: ${COMPOSE_PROJECT_NAME}.${DEPENDENCY_DSN}
       WATCHPACK_POLLING: "true"
     volumes:
       - ./../:${COMPOSE_WORKING_DIR}:rw,delegated

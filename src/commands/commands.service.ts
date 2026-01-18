@@ -54,7 +54,8 @@ export class GetProjectsCommand extends CommandRunner {
   }
 
   async run(): Promise<void> {
-    console.log(`Start fetching projects`);
+    console.log(`Start fetching projects -> OBSOLETE`);
+    return;
     let skills = await this.appService.skillsForQuery();
     const projectsResponse = await this.freelancerService.searchActiveProjects(skills);
     for (const row of projectsResponse) {
@@ -77,14 +78,14 @@ export class GetProjectsCommand extends CommandRunner {
           project.seoUrl = row['seo_url'];
           project.currency = row['currency']['code'];          
           project.jobs = row['jobs'];
-          project.submitDate = new Date(row['submitdate']);
+          project.submitDate = new Date(Number(row['submitdate']) * 1000);
           project.type = row['type'];
           project.bidPeriod = row['bidperiod'];
           project.budget = row['budget'];
           project.hourlyProjectInfo = row['hourly_project_info'];
           project.bidStats = row['bid_stats'];
-          project.timeSubmited = new Date(row['time_submitted']);
-          project.timeUpdated = new Date(row['time_updated']);
+          project.timeSubmited = new Date(Number(row['time_submitted']) * 1000);
+          project.timeUpdated = new Date(Number(row['time_updated']) * 1000);
           project.language = row['language'];
           project.location = row['location'];
           project.trueLocation = row['true_location'];

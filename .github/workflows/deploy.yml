@@ -1,0 +1,49 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Deploy to server
+      run: |
+        # Prepare connection
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" | tr -d '\r' > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H "${{ secrets.SSH_HOST }}" > ~/.ssh/known_hosts
+
+        # Copy the .env.dist to .env
+        cp .env.dist .env
+
+        # Replace the placeholders with secrets
+        sed -i "s|NODE_ENV=.*|NODE_ENV=${{ secrets.NODE_ENV }}|g" .env
+        sed -i "s|DATABASE_USERNAME=.*|DATABASE_USERNAME=${{ secrets.DATABASE_USERNAME }}|g" .env
+        sed -i "s|DATABASE_PASSWORD=.*|DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}|g" .env
+        sed -i "s|DATABASE_SERVER=.*|DATABASE_SERVER=${{ secrets.DATABASE_SERVER }}|g" .env
+        sed -i "s|DATABASE_NAME=.*|DATABASE_NAME=${{ secrets.DATABASE_NAME }}|g" .env
+        sed -i "s|JWT_ACCESS_SECRET=.*|JWT_ACCESS_SECRET=${{ secrets.JWT_ACCESS_SECRET }}|g" .env
+        sed -i "s|JWT_REFRESH_SECRET=.*|JWT_REFRESH_SECRET=${{ secrets.JWT_REFRESH_SECRET }}|g" .env
+        sed -i "s|FREELANCER_API_KEY=.*|FREELANCER_API_KEY=${{ secrets.FREELANCER_API_KEY }}|g" .env
+
+        touch docker/.env
+        echo "COMPOSE_PROJECT_NAME=freelancer_client_api" >> docker/.env
+        echo "COMPOSE_WORKING_DIR=/app" > docker/.env
+        
+        echo "Uploading files to the server..."
+        apt update && apt install -y scp
+        scp -r * ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:${{ secrets.SERVER_PROJECT_PATH }}
+
+        echo "Running remote commands..."
+        ssh ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.SERVER_PROJECT_PATH }} && make docker-build-prod"
+        ssh ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.SERVER_PROJECT_PATH }} && docker exec freelancer_client_api_app npm install"
+        ssh ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.SERVER_PROJECT_PATH }} && docker exec freelancer_client_api_app npm run build"
+        ssh ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.SERVER_PROJECT_PATH }} && docker exec freelancer_client_api_app npm run migration:run"
+        ssh ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.SERVER_PROJECT_PATH }} && docker exec freelancer_client_api_app npm run start:prod"

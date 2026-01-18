@@ -11,6 +11,8 @@ export class InitialMigration1768293979970 implements MigrationInterface {
         await queryRunner.query(`ALTER TABLE \`miscellaneous\` ADD CONSTRAINT \`FK_a69a8e39b562be7bb929215519b\` FOREIGN KEY (\`parent_id_\`) REFERENCES \`miscellaneous\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE \`users\` ADD CONSTRAINT \`FK_f32b1cb14a9920477bcfd63df2c\` FOREIGN KEY (\`created_by\`) REFERENCES \`users\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE \`users\` ADD CONSTRAINT \`FK_b75c92ef36f432fe68ec300a7d4\` FOREIGN KEY (\`updated_by\`) REFERENCES \`users\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
+
+        await queryRunner.query(`INSERT INTO \`miscellaneous\` (\`id\`, \`created_on\`, \`updated_on\`, \`area\`, \`code\`, \`name\`, \`data_block\`, \`position\`, \`is_active\`, \`created_by\`, \`updated_by\`, \`parent_id_\`) VALUES (NULL, NULL, NULL, 'config', 'time_back_search', '24', NULL, NULL, '1', NULL, NULL, NULL);`);
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {

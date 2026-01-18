@@ -3,3 +3,4 @@ export * from './user.entity';
 export * from './miscellaneous.entity';
 export * from './skill.entity';
 export * from './project.entity';
+export * from './task.entity';
