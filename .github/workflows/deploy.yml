@@ -39,6 +39,11 @@ jobs:
         ssh ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.SERVER_PROJECT_PATH }} && docker exec freelancer_client_api_app npm install"
         ssh ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.SERVER_PROJECT_PATH }} && docker exec freelancer_client_api_app npm run build"
         ssh ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.SERVER_PROJECT_PATH }} && docker exec freelancer_client_api_app npm run migration:run"
+        
+        echo "Stopping any running application..."
+        ssh ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.SERVER_PROJECT_PATH }} && docker exec freelancer_client_api_app pkill -f 'node dist/main' || true"
+        
+        echo "Starting application..."
         ssh ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.SERVER_PROJECT_PATH }} && docker exec -d freelancer_client_api_app npm run start:prod"
         
         echo "Deployment completed successfully!"

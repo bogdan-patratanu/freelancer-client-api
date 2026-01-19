@@ -124,6 +124,10 @@ docker-down: docker-init ## Stop & removes Project docker container, and any ass
 docker-logs: docker-init ## Displays the output of each container
 	$(DOCKER_COMPOSE) logs -f
 
+.PHONY: docker-logs-prod
+docker-logs-prod: docker-init ## Displays the output of each container in PROD
+	$(DOCKER_COMPOSE_2) -f docker/docker-compose.prod.yml logs -f
+
 .PHONY: docker-test
 docker-test: docker-init docker-up ## Run the infrastructure tests for the docker setup
 	bash $(DOCKER_COMPOSE_DIR)/bin/docker-test.sh
