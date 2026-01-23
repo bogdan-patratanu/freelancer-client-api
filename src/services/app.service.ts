@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectEntityManager } from '@nestjs/typeorm';
+import { Task } from '../database/entities';
 import { EntityManager } from 'typeorm';
 
 @Injectable()
@@ -313,4 +314,65 @@ export class AppService {
     return skills;
   }
 
+  async getNewProjects() {
+      const config = await this.entityManager.getRepository('Miscellaneous').findOne({
+        where: {
+          area: 'config',
+          code: 'time_back_search',
+        },
+      });
+  
+      if (!config) {
+        this.getAppLogger().error('Time back config not found');
+        return;
+      }
+  
+      const skills = this.skillsForQuery();
+      const timeBack = Math.floor((Date.now() - parseInt(config.name) * 60 * 60 * 1000) / 1000);
+      const params: any = {
+        full_description: true,
+        job_details: true,
+        local_details: true,
+        location_details: true,
+        upgrade_details: true,
+        owner_info: true,
+        jobs: skills.join(','),
+        from_time: timeBack,
+        limit: 100,
+        offset: 0,
+      };
+  
+      const task = new Task();
+      task.handler = 'projectsSearch';
+      task.payload = params;
+      task.status = 'new';
+      task.processed = false;
+      await this.entityManager.getRepository('Task').save(task);
+    }
+
+    async updateProjects(){
+      const startTime = new Date().toISOString();
+      const endTime = new Date(new Date().getTime() + 24 * 60 * 60 * 1000).toISOString();
+      const rows = await this.entityManager.query(`
+        SELECT remote_id FROM projects WHERE end_date >= ? and end_date <= ?
+      `, [startTime, endTime]);
+      
+      console.log('Updating projects:', rows.length);
+      
+      // Create tasks in batches of 25
+      const batchSize = 25;
+      for (let i = 0; i < rows.length; i += batchSize) {
+        const batch = rows.slice(i, i + batchSize);
+        const projectIds = batch.map(row => row.remote_id);
+        
+        const task = new Task();
+        task.handler = 'projectUpdate';
+        task.payload = projectIds;
+        task.status = 'new';
+        task.processed = false;
+        
+        await this.entityManager.getRepository('Task').save(task);
+        console.log(`Created task for projects ${i+1}-${Math.min(i+batchSize, rows.length)}`);
+      }
+    }
 }

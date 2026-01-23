@@ -7,6 +7,9 @@ export class Project extends StarterEntity {
   @Column({ name: 'remote_id', type: 'integer' })
   remoteId: number;
 
+  @Column({ nullable: true })
+  status: string;
+
   @Column()
   title: string;
 

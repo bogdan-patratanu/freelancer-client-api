@@ -119,4 +119,33 @@ export class FreelancerService {
       return results;
     }
   }
+
+  async updateProjectsCall(params: any): Promise<any> {
+    const url = process.env.FREELANCER_API_URL + '/api/projects/0.1/projects';
+    const headers = { 'Freelancer-OAuth-V1': process.env.FREELANCER_API_KEY };
+    const results = {
+      error: false,
+      message: 'Success',
+      data: [],
+    };
+    try {
+      this.appService
+        .getAppLogger()
+        .log(`Fetching active projects with params: ${JSON.stringify(params)}`);
+
+      const response = await firstValueFrom(
+        this.httpService.get(url, { headers, params, timeout: 10000 }),
+      );
+
+      const projects = response.data?.result?.projects || [];
+
+      results.data = projects;
+      return results;
+    } catch (error) {
+      this.appService.getAppLogger().error('Error updating projects', error);
+      results.error = true;
+      results.message = error.message;
+      return results;
+    }
+  }
 }

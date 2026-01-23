@@ -1,20 +1,23 @@
-import { Controller } from '@nestjs/common';
-// import { Crud, CrudController } from '@nestjsx/crud';
-import { Project } from 'src/database/entities';
+import { Controller, Get, Query } from '@nestjs/common';
+import { Project } from '../../database/entities';
 import { ProjectsService } from './projects.service';
-import { InjectEntityManager } from '@nestjs/typeorm';
-import { EntityManager } from 'typeorm';
+import { BaseCrudController } from '../../common/base-crud.controller';
 
 @Controller('projects')
-// @UseGuards(new PermissionCheck('ff'))
-export class ProjectsController  {
-  constructor(
-    public service: ProjectsService,
-    @InjectEntityManager()
-    private readonly entityManager: EntityManager,
-  ) {}
+export class ProjectsController extends BaseCrudController<Project> {
+  constructor(protected readonly service: ProjectsService) {
+    super(service);
+  }
 
-  // get base(): CrudController<Project> {
-  //   return this;
-  // }
+  @Get()
+  async findAll(@Query('page') page?: number, @Query('limit') limit?: number) {
+    // Set default values if not provided
+    const pageNumber = page || 1;
+    const limitNumber = limit || 10;
+    console.log('pageNumber', pageNumber);
+    console.log('limitNumber', limitNumber);
+
+    // console.log('now', new Date().toISOString());
+    return this.service.findAllPaginated(pageNumber, limitNumber);
+  }
 }
