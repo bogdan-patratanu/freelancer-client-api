@@ -25,6 +25,9 @@ export class Project extends StarterEntity {
   @Column({ name: 'submit_date' })
   submitDate: Date;
 
+  @Column({ name: 'end_date', nullable: true })
+  endDate: Date;
+
   @Column({ length: 20 })
   type: string;
 
