@@ -7,6 +7,9 @@ export class Project extends StarterEntity {
   @Column({ name: 'remote_id', type: 'integer' })
   remoteId: number;
 
+  @Column({ nullable: true })
+  status: string;
+
   @Column()
   title: string;
 
@@ -42,6 +45,9 @@ export class Project extends StarterEntity {
 
   @Column({ name: 'bid_stats', type: 'json', nullable: true })
   bidStats: JSON;
+
+  @Column({ name: 'bids', type: 'json', nullable: true })
+  bids: JSON;
 
   @Column({ name: 'time_submited' })
   timeSubmited: Date;

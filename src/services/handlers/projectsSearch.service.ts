@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { AppService } from '../app.service';
 import { InjectEntityManager } from '@nestjs/typeorm';
 import { FreelancerService } from '../freelancer.service';
-import { Project, Task } from 'src/database/entities';
+import { Project, Task } from '../../database/entities';
 
 @Injectable()
 export class ProjectsSearchHandler {
@@ -28,6 +28,7 @@ export class ProjectsSearchHandler {
             }
           }
           if (isValid) {
+
             let project = await this.entityManager.getRepository('Project').findOneBy({
               remoteId: parseInt(row['id']),
             });
@@ -43,12 +44,13 @@ export class ProjectsSearchHandler {
             project.jobs = row['jobs'];
             project.submitDate = new Date(Number(row['submitdate']) * 1000);
             project.type = row['type'];
-            project.bidPeriod = row['bidperiod'];
+            project.bidPeriod = parseInt(row['bidperiod']);
             project.budget = row['budget'];
             project.hourlyProjectInfo = row['hourly_project_info'];
             project.bidStats = row['bid_stats'];
             project.timeSubmited = new Date(Number(row['time_submitted']) * 1000);
             project.timeUpdated = new Date(Number(row['time_updated']) * 1000);
+            project.endDate = new Date(project.submitDate.getTime() + project.bidPeriod * 24 * 60 * 60 * 1000);
             project.language = row['language'];
             project.location = row['location'];
             project.trueLocation = row['true_location'];

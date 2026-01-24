@@ -6,10 +6,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppDataSource } from './database/data-source';
 import { TasksService } from './services/tasks.service';
 import { ScheduleModule } from '@nestjs/schedule';
-import { BlablaHandler } from './services/handlers/blabla.service';
 import { FreelancerService } from './services/freelancer.service';
 import { HttpModule } from '@nestjs/axios';
-import { ProjectsSearchHandler } from './services/handlers/projectsSearch.service';
+import { ProjectsModule } from './modules/projects/projects.module';
+import { HandlersModule } from './services/handlers/handlers.module';
 
 @Module({
   imports: [
@@ -17,8 +17,10 @@ import { ProjectsSearchHandler } from './services/handlers/projectsSearch.servic
     TypeOrmModule.forRoot(AppDataSource.options),
     CommandsModule,
     HttpModule,
+    HandlersModule,
+    ProjectsModule,
   ],
   controllers: [AppController],
-  providers: [AppService, TasksService, FreelancerService, BlablaHandler, ProjectsSearchHandler],
+  providers: [AppService, TasksService, FreelancerService],
 })
 export class AppModule {}
