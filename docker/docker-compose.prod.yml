@@ -5,7 +5,7 @@ services:
     image: node:latest
     container_name: ${COMPOSE_PROJECT_NAME}_app
     working_dir: ${COMPOSE_WORKING_DIR}
-    command: sleep infinity
+    command: npm run build && npm run start:prod
     ports:
       - "3033:3000"
     environment:

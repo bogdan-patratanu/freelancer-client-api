@@ -34,16 +34,11 @@ jobs:
         ssh ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.SERVER_PROJECT_PATH }} && sed -i \"s|JWT_ACCESS_SECRET=.*|JWT_ACCESS_SECRET=${{ secrets.JWT_ACCESS_SECRET }}|g\" .env"
         ssh ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.SERVER_PROJECT_PATH }} && sed -i \"s|JWT_REFRESH_SECRET=.*|JWT_REFRESH_SECRET=${{ secrets.JWT_REFRESH_SECRET }}|g\" .env"
         ssh ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.SERVER_PROJECT_PATH }} && sed -i \"s|FREELANCER_API_KEY=.*|FREELANCER_API_KEY=${{ secrets.FREELANCER_API_KEY }}|g\" .env"
-        ssh ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.SERVER_PROJECT_PATH }} && cp docker/.env.dist docker/.env"        
-        ssh ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.SERVER_PROJECT_PATH }} && make docker-build-prod"
+        
         ssh ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.SERVER_PROJECT_PATH }} && docker exec freelancer_client_api_app npm install"
         ssh ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.SERVER_PROJECT_PATH }} && docker exec freelancer_client_api_app npm run build"
         ssh ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.SERVER_PROJECT_PATH }} && docker exec freelancer_client_api_app npm run migration:run"
-        
-        echo "Stopping any running application..."
-        ssh ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.SERVER_PROJECT_PATH }} && docker exec freelancer_client_api_app pkill -f 'node dist/main' || true"
-        
-        echo "Starting application..."
-        ssh ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.SERVER_PROJECT_PATH }} && docker exec -d freelancer_client_api_app npm run start:prod"
+        ssh ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.SERVER_PROJECT_PATH }} && cp docker/.env.dist docker/.env"        
+        ssh ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.SERVER_PROJECT_PATH }} && make docker-build-prod"
         
         echo "Deployment completed successfully!"
