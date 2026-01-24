@@ -161,7 +161,7 @@ export class ProjectsController extends BaseCrudController<Project> {
 
     const filters = {
       status: 'active',
-      endDate: Between(new Date(Date.now()), new Date(new Date().setDate(new Date().getDate() + 1))),
+      endDate: Between(new Date(Date.now()).toISOString(), new Date(new Date().setDate(new Date().getDate() + 1)).toISOString()),
     };
     console.log('filters', filters);
     const result = await this.service.findAllPaginated(filters, pageNumber, 1000, {submitDate: 'ASC'});
