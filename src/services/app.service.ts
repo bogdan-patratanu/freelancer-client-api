@@ -353,6 +353,7 @@ export class AppService {
     async updateProjects(){
       const startTime = new Date().toISOString();
       const endTime = new Date(new Date().getTime() + 24 * 60 * 60 * 1000).toISOString();
+      // console.log(`Query: SELECT remote_id FROM projects WHERE end_date >= '${startTime}' AND end_date <= '${endTime}'`);
       const rows = await this.entityManager.query(`
         SELECT remote_id FROM projects WHERE end_date >= ? and end_date <= ?
       `, [startTime, endTime]);

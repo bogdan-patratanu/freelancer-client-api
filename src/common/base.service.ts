@@ -20,12 +20,14 @@ export abstract class BaseService<T extends IBaseEntity> {
     return this.repository.find();
   }
 
-  async findAllPaginated(page: number = 1, limit: number = 10) {
+  async findAllPaginated(where: any, page: number = 1, limit: number = 10, order: any = { id: 'ASC' }) {
     const skip = (page - 1) * limit;
+    
     const [data, total] = await this.repository.findAndCount({
+      where,
       skip,
       take: limit,
-      order: { id: 'DESC' } as any,
+      order: order,
     });
     return {
       data,
