@@ -66,4 +66,7 @@ export class Project extends StarterEntity {
 
   @Column({ name: 'owner_info', type: 'json', nullable: true })
   ownerInfo: JSON;
+
+  @Column({ name: 'display_type', length: 20, default: 'notSet' })
+  displayType: string;
 }

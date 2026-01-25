@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectEntityManager } from '@nestjs/typeorm';
-import { Task } from '../database/entities';
+import { Project, Task } from '../database/entities';
 import { EntityManager } from 'typeorm';
 
 @Injectable()
@@ -315,65 +315,244 @@ export class AppService {
   }
 
   async getNewProjects() {
-      const config = await this.entityManager.getRepository('Miscellaneous').findOne({
-        where: {
-          area: 'config',
-          code: 'time_back_search',
-        },
-      });
-  
-      if (!config) {
-        this.getAppLogger().error('Time back config not found');
-        return;
-      }
-  
-      const skills = this.skillsForQuery();
-      const timeBack = Math.floor((Date.now() - parseInt(config.name) * 60 * 60 * 1000) / 1000);
-      const params: any = {
-        full_description: true,
-        job_details: true,
-        local_details: true,
-        location_details: true,
-        upgrade_details: true,
-        owner_info: true,
-        jobs: skills.join(','),
-        from_time: timeBack,
-        limit: 100,
-        offset: 0,
-      };
-  
-      const task = new Task();
-      task.handler = 'projectsSearch';
-      task.payload = params;
-      task.status = 'new';
-      task.processed = false;
-      await this.entityManager.getRepository('Task').save(task);
+    const config = await this.entityManager.getRepository('Miscellaneous').findOne({
+      where: {
+        area: 'config',
+        code: 'time_back_search',
+      },
+    });
+
+    if (!config) {
+      this.getAppLogger().error('Time back config not found');
+      return;
     }
 
-    async updateProjects(){
-      const startTime = new Date().toISOString();
-      const endTime = new Date(new Date().getTime() + 24 * 60 * 60 * 1000).toISOString();
-      // console.log(`Query: SELECT remote_id FROM projects WHERE end_date >= '${startTime}' AND end_date <= '${endTime}'`);
-      const rows = await this.entityManager.query(`
+    const skills = this.skillsForQuery();
+    const timeBack = Math.floor((Date.now() - parseInt(config.name) * 60 * 60 * 1000) / 1000);
+    const params: any = {
+      full_description: true,
+      job_details: true,
+      local_details: true,
+      location_details: true,
+      upgrade_details: true,
+      owner_info: true,
+      jobs: skills.join(','),
+      from_time: timeBack,
+      limit: 100,
+      offset: 0,
+    };
+
+    const task = new Task();
+    task.handler = 'projectsSearch';
+    task.payload = params;
+    task.status = 'new';
+    task.processed = false;
+    await this.entityManager.getRepository('Task').save(task);
+  }
+
+  async updateProjects() {
+    const startTime = new Date().toISOString();
+    const endTime = new Date(new Date().getTime() + 24 * 60 * 60 * 1000).toISOString();
+    // console.log(`Query: SELECT remote_id FROM projects WHERE end_date >= '${startTime}' AND end_date <= '${endTime}'`);
+    const rows = await this.entityManager.query(
+      `
         SELECT remote_id FROM projects WHERE end_date >= ? and end_date <= ?
-      `, [startTime, endTime]);
-      
-      console.log('Updating projects:', rows.length);
-      
-      // Create tasks in batches of 25
-      const batchSize = 25;
-      for (let i = 0; i < rows.length; i += batchSize) {
-        const batch = rows.slice(i, i + batchSize);
-        const projectIds = batch.map(row => row.remote_id);
-        
-        const task = new Task();
-        task.handler = 'projectUpdate';
-        task.payload = projectIds;
-        task.status = 'new';
-        task.processed = false;
-        
-        await this.entityManager.getRepository('Task').save(task);
-        console.log(`Created task for projects ${i+1}-${Math.min(i+batchSize, rows.length)}`);
-      }
+      `,
+      [startTime, endTime],
+    );
+
+    console.log('Updating projects:', rows.length);
+
+    // Create tasks in batches of 25
+    const batchSize = 25;
+    for (let i = 0; i < rows.length; i += batchSize) {
+      const batch = rows.slice(i, i + batchSize);
+      const projectIds = batch.map((row) => row.remote_id);
+
+      const task = new Task();
+      task.handler = 'projectUpdate';
+      task.payload = projectIds;
+      task.status = 'new';
+      task.processed = false;
+
+      await this.entityManager.getRepository('Task').save(task);
+      console.log(`Created task for projects ${i + 1}-${Math.min(i + batchSize, rows.length)}`);
     }
+  }
+
+  async countTasks() {
+    const tasks = await this.entityManager.query(
+      'SELECT count(*) as toBeProcessed FROM tasks WHERE status = "new" and processed = 0',
+    );
+    return tasks[0].toBeProcessed;
+  }
+
+  async getProjectDisplayType(project: Project) {
+    const countriesByUtcOffset = {
+      utc0: [
+        'ie', // Ireland
+        'pt', // Portugal
+        'gb', // United Kingdom
+        'is', // Iceland
+        'gh', // Ghana
+        'ci', // Ivory Coast
+        'sn', // Senegal
+        'gm', // Gambia
+        'sl', // Sierra Leone
+        'lr', // Liberia
+        'bf', // Burkina Faso
+        'tg', // Togo
+        'ml', // Mali
+        'mr', // Mauritania
+        'gn', // Guinea
+        'gw', // Guinea-Bissau
+        'eh', // Western Sahara
+      ],
+
+      utc1: [
+        'fr', // France
+        'de', // Germany
+        'es', // Spain
+        'it', // Italy
+        'be', // Belgium
+        'nl', // Netherlands
+        'lu', // Luxembourg
+        'ch', // Switzerland
+        'at', // Austria
+        'pl', // Poland
+        'cz', // Czech Republic
+        'sk', // Slovakia
+        'hu', // Hungary
+        'si', // Slovenia
+        'hr', // Croatia
+        'dk', // Denmark
+        'no', // Norway
+        'se', // Sweden
+        'al', // Albania
+        'rs', // Serbia
+        'me', // Montenegro
+        'mk', // North Macedonia
+        'ba', // Bosnia and Herzegovina
+        'xk', // Kosovo
+        'mt', // Malta
+        'ad', // Andorra
+        'mc', // Monaco
+        'sm', // San Marino
+        'va', // Vatican
+        'dz', // Algeria
+        'tn', // Tunisia
+        'ng', // Nigeria
+        'ne', // Niger
+        'td', // Chad
+        'cm', // Cameroon
+        'cf', // Central African Republic
+        'cg', // Republic of the Congo
+        'ga', // Gabon
+        'gq', // Equatorial Guinea
+      ],
+
+      utc2: [
+        'gr', // Greece
+        'bg', // Bulgaria
+        'fi', // Finland
+        'ee', // Estonia
+        'lv', // Latvia
+        'lt', // Lithuania
+        'ua', // Ukraine
+        'md', // Moldova
+        'cy', // Cyprus
+        'il', // Israel
+        'ps', // Palestine
+        'eg', // Egypt
+        'ly', // Libya
+        'za', // South Africa
+        'zw', // Zimbabwe
+        'zm', // Zambia
+        'bw', // Botswana
+        'mw', // Malawi
+        'mz', // Mozambique
+        'ls', // Lesotho
+        'sz', // Eswatini
+        'na', // Namibia
+      ],
+
+      utc3: [
+        'ru', // Russia (western part)
+        'tr', // Turkey
+        'by', // Belarus
+        'ge', // Georgia
+        'am', // Armenia
+        'az', // Azerbaijan
+        'sa', // Saudi Arabia
+        'iq', // Iraq
+        'kw', // Kuwait
+        'qa', // Qatar
+        'bh', // Bahrain
+        'ae', // United Arab Emirates
+        'om', // Oman
+        'jo', // Jordan
+        'lb', // Lebanon
+        'sy', // Syria
+        'ye', // Yemen
+        'ke', // Kenya
+        'ug', // Uganda
+        'tz', // Tanzania
+        'so', // Somalia
+        'et', // Ethiopia
+        'er', // Eritrea
+        'dj', // Djibouti
+        'mg', // Madagascar
+      ],
+
+      utc4: [
+        'az', // Azerbaijan (also UTC+4)
+        'ge', // Georgia
+        'am', // Armenia
+        'ae', // United Arab Emirates
+        'om', // Oman
+        'sc', // Seychelles
+        'mu', // Mauritius
+      ],
+    };
+
+    const proximityCountries = [
+      ...countriesByUtcOffset.utc0,
+      ...countriesByUtcOffset.utc1,
+      ...countriesByUtcOffset.utc2,
+      ...countriesByUtcOffset.utc3,
+      ...countriesByUtcOffset.utc4,
+    ];
+    const remoteCountries = ['us', 'ca', 'au', 'nz'];
+    let ownerCountry = 'notSet';
+    let ownerCountryName = 'notSet';
+    let displayType = 'notSet';
+
+    if (project.ownerInfo && project.ownerInfo['country']) {
+      ownerCountry = project.ownerInfo['country']['code'];
+      ownerCountryName = project.ownerInfo['country']['name'];
+    }
+    if (ownerCountry == 'ro' && project.type === 'hourly') {
+      displayType = 'romaniaHourly';
+    } else if (ownerCountry == 'ro' && project.type === 'fixed') {
+      displayType = 'romaniaFixed';
+    } else if (proximityCountries.includes(ownerCountry) && project.type === 'hourly') {
+      displayType = 'proximityHourly';
+    } else if (proximityCountries.includes(ownerCountry) && project.type === 'fixed') {
+      displayType = 'proximityFixed';
+    } else if (remoteCountries.includes(ownerCountry) && project.type === 'hourly') {
+      displayType = 'remoteHourly';
+    } else if (remoteCountries.includes(ownerCountry) && project.type === 'fixed') {
+      displayType = 'remoteFixed';
+    } else if (project.type === 'hourly') {
+      displayType = 'othersHourly';
+    } else if (project.type === 'fixed') {
+      displayType = 'othersFixed';
+    }
+
+    return {
+      displayType,
+      ownerCountry,
+      ownerCountryName,
+    };
+  }
 }
