@@ -1,4 +1,4 @@
-import { Get, Post, Put, Delete, Body, Param, Query } from '@nestjs/common';
+import { Get, Post, Put, Delete, Patch, Body, Param, Query } from '@nestjs/common';
 
 export abstract class BaseCrudController<T> {
   constructor(protected readonly service: any) {}
@@ -28,6 +28,11 @@ export abstract class BaseCrudController<T> {
   @Put(':id')
   async update(@Param('id') id: number, @Body() data: Partial<T>) {
     return this.service.update(id, data);
+  }
+
+  @Patch(':id')
+  async partialUpdate(@Param('id') id: number, @Body() data: Partial<T>) {
+    return this.service.partialUpdate(id, data);
   }
 
   @Delete(':id')

@@ -51,7 +51,16 @@ export abstract class BaseService<T extends IBaseEntity> {
     return this.repository.save(entity);
   }
 
-  async remove(id: number): Promise<void> {
+  async partialUpdate(id: number, partialDto: DeepPartial<T>): Promise<T> {
+    const entity = await this.findOne(id);
+    if (!entity) {
+      throw new Error(`Entity with id ${id} not found`);
+    }
+    Object.assign(entity, partialDto);
+    return this.repository.save(entity);
+  }
+
+  async delete(id: number): Promise<void> {
     await this.repository.delete(id);
   }
 }

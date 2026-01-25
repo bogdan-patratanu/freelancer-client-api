@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { AppService } from '../app.service';
 import { InjectEntityManager } from '@nestjs/typeorm';
 import { FreelancerService } from '../freelancer.service';
-import { Project, Task } from '../../database/entities';
+import { Project, Task, Notification } from '../../database/entities';
 
 @Injectable()
 export class ProjectsSearchHandler {
@@ -28,7 +28,6 @@ export class ProjectsSearchHandler {
             }
           }
           if (isValid) {
-
             let project = await this.entityManager.getRepository('Project').findOneBy({
               remoteId: parseInt(row['id']),
             });
@@ -50,13 +49,26 @@ export class ProjectsSearchHandler {
             project.bidStats = row['bid_stats'];
             project.timeSubmited = new Date(Number(row['time_submitted']) * 1000);
             project.timeUpdated = new Date(Number(row['time_updated']) * 1000);
-            project.endDate = new Date(project.submitDate.getTime() + project.bidPeriod * 24 * 60 * 60 * 1000);
+            project.endDate = new Date(
+              project.submitDate.getTime() + project.bidPeriod * 24 * 60 * 60 * 1000,
+            );
             project.language = row['language'];
             project.location = row['location'];
             project.trueLocation = row['true_location'];
             project.ownerInfo = row['owner_info'];
 
+            const { displayType, ownerCountry, ownerCountryName } =
+              await this.appService.getProjectDisplayType(project as any);
+            project.displayType = displayType;
+
             await this.entityManager.getRepository('Project').save(project);
+
+            if (ownerCountryName == 'ro' || project.language == 'ro') {
+              let notification = new Notification();
+              notification.subject = 'Project nou pe Romania';
+              notification.body = 'A fost adaugat un nou project pe Romania : <a href="https://www.freelancer.com/projects/' + project.seoUrl + '">' + project.seoUrl + '</a>';
+              await this.entityManager.getRepository('Notification').save(notification);
+            }
           }
         }
         payload.offset += 100;

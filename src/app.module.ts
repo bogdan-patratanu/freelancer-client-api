@@ -10,6 +10,7 @@ import { FreelancerService } from './services/freelancer.service';
 import { HttpModule } from '@nestjs/axios';
 import { ProjectsModule } from './modules/projects/projects.module';
 import { HandlersModule } from './services/handlers/handlers.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { HandlersModule } from './services/handlers/handlers.module';
     HttpModule,
     HandlersModule,
     ProjectsModule,
+    NotificationsModule
   ],
   controllers: [AppController],
   providers: [AppService, TasksService, FreelancerService],

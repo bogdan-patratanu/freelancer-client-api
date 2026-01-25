@@ -9,4 +9,9 @@ export class AppController {
   async getHello(): Promise<any> {
     return 'Sooo ... cu ce ocazie pe aici ?';
   }
+
+  @Get('count-tasks')
+  async countTasks(): Promise<any> {
+    return {count: await this.appService.countTasks()};
+  }
 }
