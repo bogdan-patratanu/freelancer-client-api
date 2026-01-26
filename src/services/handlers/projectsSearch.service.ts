@@ -62,11 +62,21 @@ export class ProjectsSearchHandler {
             project.displayType = displayType;
 
             await this.entityManager.getRepository('Project').save(project);
-
-            if (ownerCountryName == 'ro' || project.language == 'ro') {
+            
+            if (ownerCountry == 'ro' || project.language == 'ro') {
+              const checkIfNotificationExists = await this.entityManager.query(
+                `SELECT id FROM notifications WHERE JSON_EXTRACT(data_block, '$.remoteId') = ? LIMIT 1`,
+                [project.remoteId]
+              );
+              if (checkIfNotificationExists.length > 0) {
+                continue;
+              }
               let notification = new Notification();
               notification.subject = 'Project nou pe Romania';
               notification.body = 'A fost adaugat un nou project pe Romania : <a href="https://www.freelancer.com/projects/' + project.seoUrl + '">' + project.seoUrl + '</a>';
+              notification.dataBlock = {
+                remoteId: project.remoteId,
+              } as any;
               await this.entityManager.getRepository('Notification').save(notification);
             }
           }
