@@ -72,8 +72,8 @@ export class ProjectsSearchHandler {
                 continue;
               }
               let notification = new Notification();
-              notification.subject = 'Project nou pe Romania';
-              notification.body = 'A fost adaugat un nou project pe Romania : <a href="https://www.freelancer.com/projects/' + project.seoUrl + '">' + project.seoUrl + '</a>';
+              notification.subject = 'Proiect nou pe Romania';
+              notification.body = 'A fost adaugat un nou proiect pe Romania : <a href="https://www.freelancer.com/projects/' + project.seoUrl + '">' + project.seoUrl + '</a>';
               notification.dataBlock = {
                 remoteId: project.remoteId,
               } as any;

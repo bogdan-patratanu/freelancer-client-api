@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectEntityManager } from '@nestjs/typeorm';
 import { Project, Task } from '../database/entities';
-import { EntityManager } from 'typeorm';
+import { EntityManager, In } from 'typeorm';
 
 @Injectable()
 export class AppService {
@@ -356,7 +356,7 @@ export class AppService {
     // console.log(`Query: SELECT remote_id FROM projects WHERE end_date >= '${startTime}' AND end_date <= '${endTime}'`);
     const rows = await this.entityManager.query(
       `
-        SELECT remote_id FROM projects WHERE end_date >= ? and end_date <= ?
+        SELECT remote_id, id FROM projects WHERE end_date >= ? and end_date <= ?
       `,
       [startTime, endTime],
     );
@@ -378,6 +378,12 @@ export class AppService {
       await this.entityManager.getRepository('Task').save(task);
       console.log(`Created task for projects ${i + 1}-${Math.min(i + batchSize, rows.length)}`);
     }
+
+    const projectsToUpdate = rows.map((row) => row.id);
+    await this.entityManager.getRepository('Project').update(
+      { id: In(projectsToUpdate) },
+      { status: 'updating' },
+    );
   }
 
   async countTasks() {
