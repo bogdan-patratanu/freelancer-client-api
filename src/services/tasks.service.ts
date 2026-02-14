@@ -72,6 +72,26 @@ export class TasksService {
     task.endProcessingTime = new Date();
     task.result = result;
     await this.entityManager.getRepository('Task').save(task);
+
+    if (task.analyticPayload) {
+      const analytic = await this.entityManager.getRepository('Analytic').findOne({
+        where: {
+          id: task.analyticPayload.id,
+        },
+      });
+      if (analytic) {
+        const analytics = await this.entityManager.query(task.analyticPayload.query);
+        let activeProjectsCount = 0;
+        for (const item of analytics) {
+          if (item.status === 'active') {
+            activeProjectsCount = item.total;
+          }
+        }
+        analytic.activeEndCount = activeProjectsCount;
+        analytic.data = analytics;
+        await this.entityManager.getRepository('Analytic').save(analytic);
+      }
+    }
   }
 
   @Cron(CronExpression.EVERY_HOUR)

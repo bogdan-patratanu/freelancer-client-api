@@ -11,6 +11,7 @@ import { HttpModule } from '@nestjs/axios';
 import { ProjectsModule } from './modules/projects/projects.module';
 import { HandlersModule } from './services/handlers/handlers.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { AnalyticsModule } from './modules/analytics/analytics.module';
 
 @Module({
   imports: [
@@ -20,7 +21,8 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
     HttpModule,
     HandlersModule,
     ProjectsModule,
-    NotificationsModule
+    NotificationsModule,
+    AnalyticsModule,
   ],
   controllers: [AppController],
   providers: [AppService, TasksService, FreelancerService],
