@@ -432,7 +432,14 @@ export class AppService {
       HKD: 0.13,
     };
     const maxBudget = project.budget['maximum'] || 0;
-    const budgetCurrency = project.budget['currency'] || 'USD';
+    const budgetCurrency = project.currency || 'USD';
+    
+    // Check if exchange rate exists for the budget currency
+    if (!exchangeRates[budgetCurrency]) {
+      this.getAppLogger().warn(`Exchange rate not found for currency: ${budgetCurrency}`);
+      return 0;
+    }
+    
     return maxBudget * exchangeRates[budgetCurrency];
   }
 
