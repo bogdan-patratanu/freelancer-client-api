@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectEntityManager } from '@nestjs/typeorm';
-import { Project, Task } from '../database/entities';
+import { Analytic, Project, Task } from '../database/entities';
 import { EntityManager, In } from 'typeorm';
 
 @Injectable()
@@ -363,6 +363,32 @@ export class AppService {
 
     console.log('Updating projects:', rows.length);
 
+    const analyticsQuery =
+      `SELECT \`status\`, count(*) as total FROM projects WHERE end_date >= '` +
+      startTime +
+      `' and end_date <= '` +
+      endTime +
+      `' GROUP BY \`status\``;
+
+    const analytics = await this.entityManager.query(analyticsQuery);
+    let activeProjectsCount = 0;
+    for (const item of analytics) {
+      if (item.status === 'active') {
+        activeProjectsCount = item.total;
+      }
+    }
+
+    const log = new Analytic();
+    log.activeStartCount = activeProjectsCount;
+    log.activeEndCount = 0;
+    log.data = analytics;
+    await this.entityManager.getRepository('Analytic').save(log);
+
+    const analyticPayload = {
+      id: log.id,
+      query: analyticsQuery,
+    };
+
     // Create tasks in batches of 25
     const batchSize = 25;
     for (let i = 0; i < rows.length; i += batchSize) {
@@ -374,6 +400,7 @@ export class AppService {
       task.payload = projectIds;
       task.status = 'new';
       task.processed = false;
+      task.analyticPayload = analyticPayload as any;
 
       await this.entityManager.getRepository('Task').save(task);
       console.log(`Created task for projects ${i + 1}-${Math.min(i + batchSize, rows.length)}`);
@@ -549,14 +576,11 @@ export class AppService {
     let ownerCountryName = 'notSet';
     let displayType = 'notSet';
 
-    
-
     if (project.ownerInfo && project.ownerInfo['country']) {
       ownerCountry = project.ownerInfo['country']['code'];
       ownerCountryName = project.ownerInfo['country']['name'];
     }
 
-    
     const maxBudget = await this.getMaxBudget(project);
     if (ownerCountry == 'ro' && project.type === 'hourly') {
       displayType = 'romaniaHourly';

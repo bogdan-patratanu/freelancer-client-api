@@ -30,4 +30,7 @@ export class Task {
 
   @Column({ type: 'text', nullable: true })
   result: string | null;
+
+  @Column({ name: 'analytic_payload', type: 'json', nullable: true })
+  analyticPayload: JSON;
 }
