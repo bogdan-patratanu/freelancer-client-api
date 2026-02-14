@@ -380,10 +380,9 @@ export class AppService {
     }
 
     const projectsToUpdate = rows.map((row) => row.id);
-    await this.entityManager.getRepository('Project').update(
-      { id: In(projectsToUpdate) },
-      { status: 'updating' },
-    );
+    await this.entityManager
+      .getRepository('Project')
+      .update({ id: In(projectsToUpdate) }, { status: 'updating' });
   }
 
   async countTasks() {
@@ -391,6 +390,23 @@ export class AppService {
       'SELECT count(*) as toBeProcessed FROM tasks WHERE status = "new" and processed = 0',
     );
     return tasks[0].toBeProcessed;
+  }
+
+  async getMaxBudget(project: Project) {
+    const exchangeRates: Record<string, number> = {
+      USD: 1,
+      INR: 0.012,
+      NZD: 0.61,
+      EUR: 1.07,
+      AUD: 0.67,
+      GBP: 1.27,
+      SGD: 0.74,
+      CAD: 0.75,
+      HKD: 0.13,
+    };
+    const maxBudget = project.budget['maximum'] || 0;
+    const budgetCurrency = project.budget['currency'] || 'USD';
+    return maxBudget * exchangeRates[budgetCurrency];
   }
 
   async getProjectDisplayType(project: Project) {
@@ -533,26 +549,31 @@ export class AppService {
     let ownerCountryName = 'notSet';
     let displayType = 'notSet';
 
+    
+
     if (project.ownerInfo && project.ownerInfo['country']) {
       ownerCountry = project.ownerInfo['country']['code'];
       ownerCountryName = project.ownerInfo['country']['name'];
     }
+
+    
+    const maxBudget = await this.getMaxBudget(project);
     if (ownerCountry == 'ro' && project.type === 'hourly') {
       displayType = 'romaniaHourly';
     } else if (ownerCountry == 'ro' && project.type === 'fixed') {
-      displayType = 'romaniaFixed';
+      displayType = maxBudget < 150 ? 'othersFixedSmall' : 'romaniaFixed';
     } else if (proximityCountries.includes(ownerCountry) && project.type === 'hourly') {
       displayType = 'proximityHourly';
     } else if (proximityCountries.includes(ownerCountry) && project.type === 'fixed') {
-      displayType = 'proximityFixed';
+      displayType = maxBudget < 150 ? 'othersFixedSmall' : 'proximityFixed';
     } else if (remoteCountries.includes(ownerCountry) && project.type === 'hourly') {
       displayType = 'remoteHourly';
     } else if (remoteCountries.includes(ownerCountry) && project.type === 'fixed') {
-      displayType = 'remoteFixed';
+      displayType = maxBudget < 150 ? 'othersFixedSmall' : 'remoteFixed';
     } else if (project.type === 'hourly') {
       displayType = 'othersHourly';
     } else if (project.type === 'fixed') {
-      displayType = 'othersFixed';
+      displayType = maxBudget < 150 ? 'othersFixedSmall' : 'othersFixed';
     }
 
     return {
