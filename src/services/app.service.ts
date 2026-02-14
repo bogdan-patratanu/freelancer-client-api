@@ -592,19 +592,19 @@ export class AppService {
     if (ownerCountry == 'ro' && project.type === 'hourly') {
       displayType = 'romaniaHourly';
     } else if (ownerCountry == 'ro' && project.type === 'fixed') {
-      displayType = maxBudget < 150 ? 'othersFixedSmall' : 'romaniaFixed';
+      displayType = maxBudget < 150 ? 'smallProjects' : 'romaniaFixed';
     } else if (proximityCountries.includes(ownerCountry) && project.type === 'hourly') {
       displayType = 'proximityHourly';
     } else if (proximityCountries.includes(ownerCountry) && project.type === 'fixed') {
-      displayType = maxBudget < 150 ? 'othersFixedSmall' : 'proximityFixed';
+      displayType = maxBudget < 150 ? 'smallProjects' : 'proximityFixed';
     } else if (remoteCountries.includes(ownerCountry) && project.type === 'hourly') {
       displayType = 'remoteHourly';
     } else if (remoteCountries.includes(ownerCountry) && project.type === 'fixed') {
-      displayType = maxBudget < 150 ? 'othersFixedSmall' : 'remoteFixed';
+      displayType = maxBudget < 150 ? 'smallProjects' : 'remoteFixed';
     } else if (project.type === 'hourly') {
       displayType = 'othersHourly';
     } else if (project.type === 'fixed') {
-      displayType = maxBudget < 150 ? 'othersFixedSmall' : 'othersFixed';
+      displayType = maxBudget < 150 ? 'smallProjects' : 'othersFixed';
     }
 
     return {
