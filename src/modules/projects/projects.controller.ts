@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Query } from '@nestjs/common';
+import { Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { Between } from 'typeorm';
 import { Project } from '../../database/entities';
 import { ProjectsService } from './projects.service';
@@ -15,28 +15,44 @@ export class ProjectsController extends BaseCrudController<Project> {
   }
 
   @Get()
-  async findAll(@Query('page') page?: number, @Query('limit') limit?: number) {
-    // Set default values if not provided
-    const pageNumber = page || 1;
-    const limitNumber = limit || 10;
-    // console.log('pageNumber', pageNumber);
-    // console.log('limitNumber', limitNumber);
+  async findAll(
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+    @Query('search') search?: string,
+    @Query('endingSoon') endingSoon?: string,
+  ) {
+    let result;
 
-    
-    // console.log('now', new Date().toISOString());
+    if (endingSoon === 'true') {
+      // Unchanged legacy behavior for the "ending soon" page: active projects
+      // ending within the next 24h, capped at 1000, ordered by submitDate ASC.
+      const pageNumber = page || 1;
+      const filters = {
+        status: 'active',
+        endDate: Between(new Date(Date.now()).toISOString(), new Date(new Date().setDate(new Date().getDate() + 1)).toISOString()),
+      };
+      result = await this.service.findAllPaginated(filters, pageNumber, 1000, { submitDate: 'ASC' });
+    } else {
+      result = await this.service.searchPaginated(search, page || 1, limit || 25, { id: 'DESC' });
+    }
 
-    const filters = {
-      status: 'active',
-      endDate: Between(new Date(Date.now()).toISOString(), new Date(new Date().setDate(new Date().getDate() + 1)).toISOString()),
-    };
-    // console.log('filters', filters);
-    const result = await this.service.findAllPaginated(filters, pageNumber, 1000, {submitDate: 'ASC'});
     for (const project of result.data) {
-      const { displayType, ownerCountry, ownerCountryName } = await this.appService.getProjectDisplayType(project);
+      const { displayType, ownerCountryName } = await this.appService.getProjectDisplayType(project);
       project['displayType'] = displayType;
       project['ownerCountryName'] = ownerCountryName;
     }
     return result;
+  }
+
+  @Get(':id')
+  async findOne(@Param('id') id: number) {
+    const project = await this.service.findOne(id);
+    if (project) {
+      const { displayType, ownerCountryName } = await this.appService.getProjectDisplayType(project);
+      project['displayType'] = displayType;
+      project['ownerCountryName'] = ownerCountryName;
+    }
+    return project;
   }
 
   @Post('update-projects')
